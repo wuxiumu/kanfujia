@@ -1,0 +1,228 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		
+		<link rel="stylesheet" href="../css/iconfont.css"/>
+		<link rel="stylesheet" href="../css/style.css"/>
+	</head>
+
+	<body id="pullrefresh">
+		<div class="mui-center">
+			<header class="mui-bar mui-bar-nav grzx_nav">
+			    <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			    <h1 class="mui-title">康福佳商学院<div id="haha"></h1>
+			</header>
+			
+			
+			<div class="">
+			    <div class="study_tab">
+			        <div id="segmentedControl" class="mui-segmented-control mui-segmented-control-inverted mui-segmented-control-primary">	
+			        	<a id="item1_js" class="mui-control-item  mui-active" href="javascript:;">
+							视频资料
+						</a>
+			            <a id="item2_js" class="mui-control-item" href="javascript:;">
+							培训文档
+						</a>
+			            <a id="item3_js" class="mui-control-item " href="javascript:;">
+							销售100问
+						</a>
+			        </div>
+			    </div>
+			    <div class="study_main">
+			        <div >
+			            <div id="item_problem" class="problem">
+			            	<!--<div class="single single_problem">
+			            		<div class="title">
+			            			约不约？清明节踏青好去处避暑_包场就到北京香山假日会所
+			            		</div>
+			            		<div class="main">
+			            			清明节踏青好去处 香山脚下庭院式酒店幽静优雅设施完备.中小型会议好去处.距香山600米植物园300米,为您量身定制专业会..
+			            		</div>
+			            	</div>
+			            	<div class="single">
+			            		<div class="title">
+			            			约不约？清明节踏青好去处避暑_包场就到北京香山假日会所
+			            		</div>
+			            		<div class="main">
+			            			清明节踏青好去处 香山脚下庭院式酒店幽静优雅设施完备.中小型会议好去处.距香山600米植物园300米,为您量身定制专业会..
+			            		</div>
+			            	</div>-->
+			            </div>
+			            
+			            <div class="no_message" style="display: none;">
+			            	<div class="img1">
+			            		<img src="../images/no_message.png"/>
+			            	</div>
+			            	<div class="tips">
+			            		没有找到你要的信息
+			            	</div>
+			            </div>
+			            
+			        </div>
+			    </div>
+			</div>
+			<input id="js_huoqu_value" type="hidden" value="1"/>
+		</div>
+		<script src="../js/mui.min.js"></script>
+		<script type="text/javascript">
+			
+			document.getElementById('item1_js').addEventListener("tap",function(){
+		    	
+				mui.openWindow({
+				    url: './study_video.html', 
+				});				
+			})	
+			document.getElementById('item2_js').addEventListener("tap",function(){
+		    	
+				mui.openWindow({
+				    url: './study_peixun.html', 
+				});				
+			})	
+			document.getElementById('item3_js').addEventListener("tap",function(){
+		    	
+				mui.openWindow({
+				    url: './study_xiaoshou.html', 
+				});				
+			})	
+			
+			window.addEventListener('refresh', function(e) {
+				location.reload();
+				
+			})
+			
+			var request_url = localStorage.getItem('kfj_request_url');//请求地址
+			var request_img_url = localStorage.getItem('kfj_img_url');//图片路径
+			mui.init({
+				pullRefresh: {
+					container: '#pullrefresh',
+					down: {
+						style:'circle',
+						callback: pulldownRefresh
+					},
+					up: {
+						auto:true,
+						contentrefresh: '正在加载...',
+						callback: pullupRefresh
+					}
+				}
+			});
+			
+			function addData_html(data){
+				
+				var _lenght = data.length; 
+	            var _html = '';
+	            if (_lenght > 0) {
+	            	for (var i = 0; i < _lenght; i++) {
+	            			_html +="<div class='single single_video' video_item_id='"+data[i].item_id+"'>";
+		                    _html +="<video  width='100%' controls='controls' poster=''>";
+		                    _html +="<source src='"+request_img_url+data[i].mp4_url+"' type='video/mp4'></source>";
+		                    _html +="<source src='myvideo.ogv' type='video/ogg'></source>";
+		                    _html +="<source src='myvideo.webm' type='video/webm'></source>";
+		                    _html +="<object width='' height='' type='application/x-shockwave-flash' data='myvideo.swf'>";  
+		                    _html +="<param name='movie' value='myvideo.swf' />";
+		                    _html +="<param name='flashvars' value='autostart=true&amp;file=myvideo.swf'/>";
+		                    _html +="</object>";
+		                    _html +="当前浏览器不支持 video直接播放，点击这里下载视频： <a href='myvideo.webm'>下载视频</a>";
+		                    _html +="</video>";
+		                    _html +="<div class='name'>"+data[i].title+"</div>"; 
+		                    _html +="<div class='time'>"+data[i].times+"</div>"; 
+		                    _html +="</div>";			   	  
+						} 
+	             
+	            }
+	            return _html;
+			}
+			//上拉加载请求后台方法
+			var count = 0;
+	        var _page = 1;
+	        var _pagesize = 2;
+	        var _pagecount=0;
+			function pullupRefresh_addData() {
+				
+				var cells = document.getElementsByClassName('single_video');
+	                if(_pagecount>0)
+	                {
+	                	var _totalpage=Math.ceil(_pagecount/_pagesize);
+	                		if(_page==_totalpage)
+	                		{
+//	                			  mui('#pullrefresh').pullRefresh().endPullupToRefresh(true);	
+	                			  return;
+	                		}
+	                }
+	                if (cells.length > 0) {
+	                    _page = Math.floor(cells.length / _pagesize)+1;
+	                }
+					var data={
+						action: 'app_users_study_shipin',
+		            	page: _page,
+		            	pagesize: _pagesize
+					};
+					post_net(data);	
+					
+			}
+			//下拉刷新请求后台方法
+			function pulldownRefresh_addData(){
+			     document.getElementById("item_problem").innerHTML = "";
+					var data={
+						action: 'app_users_study_shipin',
+		            	page: 1,
+		            	pagesize: 2
+					};
+					post_net(data);
+			}
+			//上拉加载			
+			function pullupRefresh() {
+				setTimeout(function() {
+					
+					mui('#pullrefresh').pullRefresh().endPullupToRefresh(false); //参数为true代表没有更多数据了。
+					
+					pullupRefresh_addData();
+					
+				}, 1500);
+			}
+			/**
+			 * 下拉刷新具体业务实现
+			 */
+			function pulldownRefresh(){
+				setTimeout(function() {
+					pulldownRefresh_addData();
+					count = 0;
+	        		_page = 1;
+	        		_pagesize = 2;
+	        		_pagecount=0;
+					mui('#pullrefresh').pullRefresh().endPulldownToRefresh();
+    				mui('#pullrefresh').pullRefresh().enablePullupToRefresh();
+ 				    
+				}, 1500);
+			}
+			//后台请求方法    	
+			function post_net(data){
+				
+ 				mui.post(request_url+'api/',data,function(data){						
+						if(data.msg=="1"){
+							var content=addData_html(data.datalist);
+							_pagecount=data.pagecount;
+							var cells = document.getElementsByClassName('single_video');
+									
+									if(parseInt(cells.length)<=0){
+										document.getElementById("item_problem").innerHTML = content;
+									}else{
+										var html = document.getElementById("item_problem").innerHTML;
+										document.getElementById("item_problem").innerHTML = html + content;
+									}							
+							
+						}else{
+							mui('#pullrefresh').pullRefresh().endPullupToRefresh(true);
+						}
+					},'json'
+				); 
+			}			
+		</script>
+	</body>
+
+</html>

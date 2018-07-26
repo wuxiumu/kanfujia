@@ -1,0 +1,127 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>首页</title>
+    <script src="js/mui.min.js"></script>
+    <link href="css/mui.css" rel="stylesheet" />
+    
+    <link rel="stylesheet" type="text/css" href="css/iconfont.css" />
+    <link rel="stylesheet" type="text/css" href="css/style.css"/>
+    
+    <!--<style>
+        html,
+        body {
+            background-color: #efeff4;
+        }
+
+        .title {
+            margin: 20px 15px 10px;
+            color: #6d6d72;
+            font-size: 15px;
+            padding-bottom: 51px;
+        }
+    </style>-->
+</head>
+<body>
+    <nav class="mui-bar mui-bar-tab bottom_nav">
+        <a class="mui-tab-item" href="classify.html">
+            <span class="mui-icon iconfont icon-leimupinleifenleileibie"></span>
+            <span class="mui-tab-label">分类</span>
+        </a>
+        <a class="mui-tab-item" href="zhongchou/zhongchou_index.html">
+            <span class="mui-icon iconfont icon-renyuanxiaozu"></span>
+            <span class="mui-tab-label">众筹</span>
+        </a>
+        <a id="defaultTab" class="mui-tab-item mui-active" href="index/index_top.html">
+            <span class="mui-icon iconfont icon-fangzi222"></span>
+            <span class="mui-tab-label">首页</span>
+        </a>
+        <a class="mui-tab-item" href="shoppingcar/car.html">
+            <span class="mui-icon iconfont icon-gouwuche"><span style="display: none;" id="message_num" class="mui-badge">9</span></span>
+            <span class="mui-tab-label">购物车</span>
+        </a>
+        <a class="mui-tab-item" href="users/index.html">
+            <span class="mui-icon iconfont icon-xitongyonghumoshi"></span>
+            <span class="mui-tab-label">我的</span>
+        </a>
+    </nav>
+    <script src="js/dui.js"></script>
+    <script type="text/javascript">
+        mui.init();//创建子页面
+        localStorage.setItem('kfj_request_url', 'http://api.kfj9189.com/'); 
+        localStorage.setItem('kfj_img_url', 'http://api.kfj9189.com/');
+        var subpages = ['classify.html', 'zhongchou/zhongchou_index.html', 'index/index_top.html', 'shoppingcar/car.html', 'users/index.html'];
+        var subpage_style = {
+            top: '0px',
+            bottom: '51px',
+            scrollIndicator: "none",// 当你的界面的内容足够多的时候，会出现滚动条，这个是隐藏滚动条
+        };
+        //创建子页面，首个选项卡页面显示，其它均隐藏；
+        mui.plusReady(function () {
+            var self = plus.webview.currentWebview();
+            for (var i = 0; i < subpages.length; i++) {
+                var sub = plus.webview.create(subpages[i], subpages[i], subpage_style);
+                if (i != 2) {
+                    sub.hide();
+                }
+                self.append(sub);
+            };
+            /*
+             * 获取本地存储中launchFlag的值
+             * http://www.html5plus.org/doc/zh_cn/storage.html#plus.storage.getItem
+             * 若存在，说明不是首次启动，直接进入首页；
+             * 若不存在，说明是首次启动，进入引导页；
+             */
+//          var launchFlag = plus.storage.getItem("launchFlag");
+//          if (launchFlag) {
+//              mui.openWindow({
+//                  url: "index.html",
+//                  id: "index",
+//                  extras: {
+//                      mark: "index" //额外的参数，仅仅是个标识，实际开发中不用；
+//                  }
+//              });
+//          } else {
+//              mui.openWindow({
+//                  url: "guide.html",
+//                  id: "guide"
+//              });
+//          }
+        });
+        //当前激活选项卡
+        var activeTab = subpages[2];
+        //console.log('activeTab:' + activeTab);
+        //选项卡点击事件
+        mui('.mui-bar-tab').on('tap', 'a', function (e) {
+            var targetTab = this.getAttribute('href'); 
+            // alert(targetTab);
+            //alert(activeTab);
+            //console.log(activeTab);
+            if (targetTab == activeTab) {
+                return;
+            }
+            if (targetTab == 'shoppingcar/car.html' || targetTab == 'users/index.html') {
+                var ifa_login_no = localStorage.getItem('ifa_login_no');
+                if (ifa_login_no == '' || ifa_login_no == null || ifa_login_no == 'null') {
+                    mui.toast('请登录');
+                    dui.jump('./login/login_mobile.html', 'login_mobile');
+                    return;
+                }
+            }
+            //显示目标选项卡
+            //console.log(targetTab);
+            plus.webview.show(targetTab);
+            /*plus.webview.show()*/
+            //隐藏当前;
+            //  console.log(activeTab);
+            plus.webview.hide(activeTab);
+            //更改当前活跃的选项卡
+            activeTab = targetTab;
+        });
+
+    </script>
+</body>
+
+</html>

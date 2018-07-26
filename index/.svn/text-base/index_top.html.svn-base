@@ -1,0 +1,228 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>首页</title>
+    <script src="../js/mui.min.js"></script>
+    <link href="../css/mui.min.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="../css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../css/iconfont.css" />
+</head>
+<body>
+	<div class="mui-center">
+	    <div class="index_top" id="view">
+	        <div class="search_message">
+	            <form class="search" action="javascript:seach();">
+	                <span class="mui-icon iconfont icon-fangdajing"></span>
+	                <input id="app-seach" class="input_search" type="search" placeholder="净水器   新风系统" value="">
+	            </form>
+	            <a class="message" href="###" onclick="messageDetails()">
+	                <span class="mui-icon iconfont icon-icon-- ico_message"></span>
+	                <span class="mui-tab-label">消息</span>
+	                <span class="mui-badge mui-badge-warning" id="public_message">0</span>
+	            </a>
+	        </div>
+			<script src="../js/public_message.js"></script>
+	        
+	        
+	        <div class="mui-slider" id="mui-slider">
+	
+	            <!--<div class="mui-slider-group mui-slider-loop">
+	
+	                <div class="mui-slider-item mui-slider-item-duplicate"><a href="#"><img src="../images/banner3.jpg" /></a></div>
+	
+	                <div class="mui-slider-item"><a href="#"><img src="../images/banner1.jpg" /></a></div>
+	                <div class="mui-slider-item"><a href="#"><img src="../images/banner2.jpg" /></a></div>
+	                <div class="mui-slider-item"><a href="#"><img src="../images/banner3.jpg" /></a></div>
+	
+	
+	                <div class="mui-slider-item mui-slider-item-duplicate"><a href="#"><img src="../images/banner1.jpg" /></a></div>
+	            </div>
+	            <div class="mui-slider-indicator">
+	                <div class="mui-indicator mui-active"></div>
+	                <div class="mui-indicator"></div>
+	                <div class="mui-indicator"></div>
+	            </div>-->
+	
+	        </div>
+	
+	        <div class="index_notice">
+	            <div class="tips">
+	              	  公告
+	            </div>
+	            <div class="notice">
+	                <div class="notice_list">
+	                    <a href="#">康福佳集团董事长张卫青为新长城康福佳集团董事长张卫青为新长城</a>
+	                </div>
+	            </div>
+	            <div class="more">
+	                <a href="#">更多</a>
+	            </div>
+	        </div>
+	    </div>
+	
+	    <div class="index_ad">
+	        <span class="title">主推商品</span>
+	    </div>
+	    <!--下拉刷新容器-->
+	    <div id="pullrefresh" class="index_list_content">
+	        <!--数据列表-->
+	        <ul class="index_list_object clearfix" id="div_list">
+	           
+	        </ul>
+	    </div> 
+	</div>
+    <script src="../js/dui.js"></script>
+    <script>
+
+        var o = document.getElementById("view");
+        var h = o.offsetHeight; //高度        
+        mui.init({
+            pullRefresh: {
+                container: '#pullrefresh',
+                up: {
+                    auto: true,
+                    contentrefresh: '正在加载...',
+                    callback: pullupRefresh
+                }
+            }
+
+        });
+        var request_url =  localStorage.getItem('kfj_request_url');
+        var request_img_url = localStorage.getItem('kfj_img_url');
+        var user_id = localStorage.getItem('ifa_login_id');
+        var slider_list = document.getElementById('mui-slider');
+        window.onload = function () {
+            getbannerlist();
+        }
+        function getbannerlist() {
+            mui.post(request_url + 'api/', { //请求的地址
+                action: 'app_index_bannerlist'
+            },
+            function (data) {//服务器返回响应，根据响应结果，分析是否登录成功； ...
+                	//console.log(JSON.stringify(data));//广告
+                    if (data.msg == 1) {
+                        slider_list.innerHTML = show_banner(data.datalist);
+                        //获得slider插件对象
+                        var gallery = mui('.mui-slider');
+                        gallery.slider({
+                            interval: 5000//自动轮播周期，若为0则不自动播放，默认为0；
+                        });
+                    } else {
+                        /*mui.toast(data.msgbox);*/
+                        return false;
+                    }
+                }, 'json')
+            //return false;
+        }
+        function show_banner(data) {
+            var _lenght = data.length;
+            var _html = '';
+            if (_lenght > 0) {
+                _html += '  <div class="mui-slider-group mui-slider-loop">';
+                _html += '		<div class="mui-slider-item mui-slider-item-duplicate"><a href="' + data[_lenght - 1].link_url + '"><img src="' + request_img_url + data[_lenght - 1].img_url + '" /></a></div>';
+                for (var i = 0; i < _lenght; i++) {
+                    _html += '		<div class="mui-slider-item"><a href="' + data[i].link_url + '"><img src="' + request_img_url + data[i].img_url + '" /></a></div>';
+                }
+                _html += '		<div class="mui-slider-item mui-slider-item-duplicate"><a href="' + data[0].link_url + '"><img src="' + request_img_url + data[0].img_url + '" /></a></div>';
+                _html += '	</div>';
+                _html += '  <div class="mui-slider-indicator">';
+                for (var i = 0; i < _lenght; i++) {
+                    _html += '		<div class="mui-indicator ' + (i == 0 ? "mui-active" : "") + '"></div>';
+                }
+                _html += '	</div>';
+            }
+            return _html;
+            
+        } 
+        
+        var count = 0;
+        var _page = 1;
+        var _pagesize = 8;
+        var _pagecount=0;
+        function pullupRefresh() {
+            setTimeout(function () {
+                mui('#pullrefresh').pullRefresh().endPullupToRefresh(false); //参数为true代表没有更多数据了。
+                var table = document.body.querySelector('.index_list_object');
+                var cells = document.body.querySelectorAll('.index_list_object_t');
+                 if(_pagecount>0)
+                {
+                	var _totalpage=Math.ceil(_pagecount/_pagesize);
+                		if(_page==_totalpage)
+                		{
+                			  mui('#pullrefresh').pullRefresh().endPullupToRefresh(true);	
+                			  return;
+                		} 
+                }
+                if (cells.length > 0) {
+                    _page = Math.floor(cells.length / _pagesize)+1;
+                    //console.log(_page);
+                }
+               
+                mui.post(request_url + 'api/', { //请求的地址
+                    action: 'app_index_productlist',
+                    page: _page,
+                    pagesize: _pagesize
+                }, 
+                    function (data) {//服务器返回响应，根据响应结果，分析是否登录成功； ...
+                        if (data.msg == 1) {
+                        	_pagecount=data.pagecount;
+                            table.innerHTML += show_product_list(data.datalist);                		  
+                        } else {
+						//mui('#pullrefresh').pullRefresh().endPullupToRefresh(true); //参数为true代表没有更多数据了。
+                            return false;
+                        } 
+                         click_event();
+                    }, 'json')
+            }, 1500);
+        }
+
+        function show_product_list(data) {
+        	//console.log(JSON.stringify(data));//打印数据
+            var _lenght = data.length;
+            var _html = '';
+            if (_lenght > 0) {
+                for (var i = 0; i < _lenght; i++) {
+                    _html += '<li class="shop_cell" iid="'+data[i].product_id+'">';
+                    _html += '    <div class="index_list_object_t">';
+                    _html += '        <img src="' + request_img_url + data[i].img_url + '">';
+                    _html += '</div>';
+                    _html += '        <div class="index_list_object_b">';
+                    _html += '            <h3>' + data[i].title + '</h3>';
+                    //_html += '            <p class="p1">双面悬浮加热 正品三包</p>';
+                    _html += '            <p class="p2">¥<span>' + data[i].sell_price + '</span></p>';
+                    _html += '</div>';
+                    _html += '</li>';
+                }
+            }
+            return _html;
+        }
+		function click_event(){
+			var cell = document.getElementsByClassName('shop_cell');
+			for(var a=0;a<cell.length;a++){
+				(function(index){
+					cell[a].addEventListener('tap',function(){
+						var iid = cell[index].getAttribute('iid');
+						localStorage.setItem('item_id',iid);
+						dui.jump('../shop/shop_detail.html','shop_detail',{info_id:iid});
+					})
+				})(a);
+			}
+		}
+
+		//搜索页
+		function seach(){
+			var seach_value=document.getElementById("app-seach").value; 
+			dui.jump('../shop/shop_seach.html','app_shop_search_list',{searchkeys:seach_value});
+		}
+		//消息列表 
+		function  messageDetails(){
+				localStorage.setItem('currentPage', 'messageDetails'); 
+				mui.openWindow({
+				    url: '../users/message.html', 
+				});
+		}
+    </script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="stylesheet" type="text/css" href="../css/mui.css"/>
+    <link rel="stylesheet" type="text/css" href="../css/iconfont.css"/>
+    <link rel="stylesheet" type="text/css" href="../css/style.css"/>
+    
+</head>
+<body id="pullrefresh" >
+    <div class="mui-center">
+	    <header class="mui-bar mui-bar-nav grzx_nav">
+	        <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+	        <h1 id="app-title" class="mui-title">关注商品</h1>
+	        <button class="mui-btn mui-btn-link mui-pull-right">管理</button>
+	    </header>
+	    <!--<div class="show_list_main clearfix" style="padding-bottom: 50px;" id="index_list_object" >-->
+	    	<div class="show_list_main clearfix" id="index_list_object" >
+			
+			<!--<div class="single clearfix">
+				<div class="mui-checkbox shop_select">
+					<input name="checkbox" value="" type="checkbox" checked>
+				</div>
+				
+				<div class="left">
+					<img src="../images/useless8.jpg"/>
+				</div>
+				<div class="right">
+					<p class="name">Philips耳机环绕立体声耳机环绕立体声</p>
+					<p class="introduction">双面悬浮加热 正品三包正品三包正品三包正品三包</p>
+					<div class="bottom">
+						<div class="money">
+							¥1238
+						</div>
+					</div>
+				</div>
+			</div>-->		
+		</div>
+	    <nav class="mui-bar mui-bar-tab shop_detail_tab shop_record">
+			<div id="app-record-checkedall" class="mui-input-row mui-checkbox mui-left shop_all_select">
+			  <label>全选</label>
+			  <input id ="all" name="checkbox1" type="checkbox">
+			</div>
+			<a id="app-delete-record" class="delete_record" href="javascript:;">取消关注</a>
+		</nav>
+	</div>
+
+    <script src="../js/dui.js"></script>
+    <script src="../js/mui.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+		mui('.shop_select').on('change', 'input', function() {
+			/*示例 - 开始*/
+			var value = this.checked?"true":"false";
+			mui.toast("checked："+value);
+			/*示例 - 结束*/
+		});
+		var request_url =  localStorage.getItem('kfj_request_url');//请求地址
+		var request_img_url = localStorage.getItem('kfj_img_url');//图片路径
+		var user_id = localStorage.getItem('ifa_login_id');
+		var currentPage=localStorage.getItem('currentPage');
+		var action="";
+        var type_id="";
+		if(currentPage=="userl_crowdfundingCollection"){			
+			document.getElementById("app-title").innerText = "众筹收藏";//添加名称
+			action='app_zhongchou_attention_list';
+			type_id=2;
+		}else if(currentPage=='user_spgz'){
+			document.getElementById("app-title").innerText = "商品关注";//添加名称
+			action='app_product_attention_list';
+			type_id=1;
+		}
+ 
+		mui.init({
+			pullRefresh: {
+				container: '#pullrefresh',
+				down: {
+					style:'circle',
+					callback: pulldownRefresh
+				},
+				up: {
+					auto:true,
+					contentrefresh: '正在加载...',
+					callback: pullupRefresh
+				}
+			}
+		});
+		function addData_html(data){
+			//console.log(JSON.stringify(data))
+			var _lenght = data.length;
+            var _html = '';
+            if (_lenght > 0) {
+            	for (var i = 0; i < _lenght; i++) {
+                    _html +="<div id='"+data[i].id+"' class='single clearfix index_list_object_t'>";
+                    _html +="<div class='mui-checkbox shop_select'>";
+                    _html +="<input name='checkbox_' value='"+data[i].id+"' type='checkbox'>";
+                    _html +="</div>";
+                    _html +="<div class='left'>";
+                    _html +="<img src='"+request_img_url+data[i].image+"'/>";
+                    _html +="</div>";
+                    _html +="<div class='right shop_cell' iid='"+data[i].id+"'>";
+                    _html +="<p class='name'>"+data[i].name+"</p>";
+                    _html +="<p class='introduction'>"+data[i].name+"</p>";
+                    _html +="<div class='bottom'>";
+                    _html +="<div class='money'>￥<span>"+data[i].money+"</span></div>";
+                    _html +="</div>";
+                    _html +="</div>";
+                    _html +="</div>";  
+              }
+            }
+            return _html;
+		}
+		//上拉加载请求后台方法
+		var count = 0;
+        var _page = 1;
+        var _pagesize = 4;
+        var _pagecount=0;
+		function pullupRefresh_addData() {
+			var table = document.body.querySelector('.index_list_object');
+			var cells = document.body.querySelectorAll('.index_list_object_t');
+
+            if(_pagecount>0)
+            {
+            	var _totalpage=Math.ceil(_pagecount/_pagesize);
+            		if(_page==_totalpage)
+            		{
+            			  mui('#pullrefresh').pullRefresh().endPullupToRefresh(true);	
+            			  return;
+            		}
+            }
+            if (cells.length > 0) {
+                _page = Math.floor(cells.length / _pagesize)+1;
+            }
+            var shop_data=
+			mui.post(request_url+'api/',{
+					action:action,
+                	page: _page,
+                	pagesize: _pagesize,
+                	user_id:user_id
+			},function(data){
+					console.log(JSON.stringify(data));
+					if(data.msg=="1"){
+						var content=addData_html(data.datalist); 
+						_pagecount=data.pagecount;
+						if(parseInt(cells.length)<=0){
+							//这是直接插入html
+							document.getElementById("index_list_object").innerHTML = content;
+						}else{
+							//如果想追加，可以这样
+							//先保存div中原来的html
+							var html = document.getElementById("index_list_object").innerHTML;
+							//再跟你想追加的代码加到一起插入div中
+							document.getElementById("index_list_object").innerHTML = html + content;
+						}
+					}else{
+						mui('#pullrefresh').pullRefresh().endPullupToRefresh(true);
+					}
+					click_event()
+				},'json'
+			);
+		}
+		//下拉刷新请求后台方法
+		function pulldownRefresh_addData() {
+			
+		}
+		//上拉加载
+		
+		function pullupRefresh() {
+			setTimeout(function() {
+				mui('#pullrefresh').pullRefresh().endPullupToRefresh(false); //参数为true代表没有更多数据了。
+				
+				pullupRefresh_addData();
+				
+			}, 1500);
+		}
+		/**
+		 * 下拉刷新具体业务实现
+		 */
+		function pulldownRefresh() {
+			setTimeout(function() {
+				pulldownRefresh_addData();
+				mui('#pullrefresh').pullRefresh().endPulldownToRefresh();
+				mui.toast("页面已刷新");
+			}, 1500);
+		}
+		//获取checkbox按钮组
+		var allpro = document.getElementsByName("checkbox_");
+
+        //添加全选事件
+        document.getElementById("app-record-checkedall").addEventListener("click",function(){	
+			 //获取全选按钮
+			 var all = document.getElementById("all");
+			 //全选按钮被选中时，遍历所有按钮
+			    if (all.checked) {
+			     for (var i = 0; i < allpro.length; i++) {
+				     if (allpro[i].type=="checkbox") {
+				     	allpro[i].checked=true;					
+				     }
+			     }
+			     //全选按钮未被选中时
+			    }else{
+			     for (var i = 0; i < allpro.length; i++) {
+				     if (allpro[i].type=="checkbox") {
+				     	allpro[i].checked=false;
+				     }
+			     }
+			    }
+		}); 
+		//添加取消关注事件
+        document.getElementById("app-delete-record").addEventListener("click",function(){
+               del_event()
+        });
+		//点击跳转方法
+		function click_event(){
+			var cell = document.getElementsByClassName('shop_cell');
+			for(var a=0;a<cell.length;a++){
+				(function(index){
+					cell[a].addEventListener('tap',function(){
+						var iid = cell[index].getAttribute('iid');	
+						if(type_id=='1'){
+							dui.jump('../shop/shop_detail.html','shop_detail',{info_id:iid});
+						}else if(type_id=='2'){
+							dui.jump('../zhongchou/zhongchou_detailed.html','shop_detail',{info_id:iid});
+						}						
+					})
+				})(a);
+			}
+		}
+		//取消关注方法
+		function del_event(){
+			    obj = document.getElementsByName("checkbox_");
+			    check_val = [];
+			    for(k in obj){
+			        if(obj[k].checked)
+			            check_val.push(obj[k].value);
+			    }
+			    var str=check_val.join(","); 	
+			    var data_del={
+					action:'app_product_attention_del',
+					user_id:user_id,
+					type_id:type_id,
+                	id_list:str                	
+				}			    
+			    mui.post(request_url+'api/',data_del,function(data){		
+						if(data.msg=="1"){								 
+							mui.toast("操作成功");
+							for ( var i = 0; i <check_val.length; i++){
+								var id=check_val[i];
+								var deleteNode =document.getElementById(id);
+								deleteNode.remove();						    
+							}							
+						}else{
+							mui.toast("操作失败"); 
+						}
+					},'json'
+				);
+		}	
+    </script>
+</body>
+</html>

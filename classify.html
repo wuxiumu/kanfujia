@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>首页</title>
+    <link rel="stylesheet" href="css/mui.css" />
+    <link rel="stylesheet" href="css/iconfont.css" />
+    <link rel="stylesheet" href="css/style.css" />
+
+    <script src="js/mui.js"></script>
+
+    <style>
+        .mui-plus.mui-android header.mui-bar {
+            display: none;
+        }
+
+        .mui-plus.mui-android .mui-bar-nav ~ .mui-content {
+            padding: 0;
+        }
+
+        .mui-row.mui-fullscreen > [class*="mui-col-"] {
+            height: 100%;
+        }
+
+        .mui-col-xs-3,
+        .mui-control-content {
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .mui-segmented-control .mui-control-item {
+            line-height: 50px;
+            width: 100%;
+        }
+
+        .mui-segmented-control.mui-segmented-control-inverted .mui-control-item.mui-active {
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body class="bg-fff">
+	<div class="mui-center">
+
+	    <div class="search_message">
+	        <div class="search">
+	            <span class="mui-icon iconfont icon-fangdajing"></span>
+	            <input id="input_search" class="input_search" type="search" placeholder="净水器   新风系统" value="">
+	        </div>
+	        <a id="app-message_count" class="message" href="#">
+	            <span class="mui-icon iconfont icon-icon-- ico_message"></span>
+	            <span class="mui-tab-label">消息</span>
+	            <span class="mui-badge mui-badge-warning">0</span> 
+	        </a>
+	    </div>
+	
+	    <div class="mui-content mui-row mui-fullscreen classify-ys bg-fff" style="top:60px;border-top: 1px solid #f4f4f4;">
+	        <div class="mui-col-xs-3" style="background-color: #f4f4f4;">
+	            <div id="segmentedControls" class="mui-segmented-control mui-segmented-control-inverted mui-segmented-control-vertical">
+	            </div>
+	        </div>
+	        <div id="segmentedControlContents" class="mui-col-xs-9">
+	        </div>
+	    </div>
+	    
+	</div>
+    <script src="js/dui.js"></script>
+    <script>
+        mui.init({
+            //swipeBack: true //启用右滑关闭功能
+        });
+        request_url = localStorage.getItem('kfj_request_url');
+        var request_img_url = localStorage.getItem('kfj_img_url');
+        var first_classify_list = document.getElementById('segmentedControls');
+        var second_classify_list = document.getElementById('segmentedControlContents');
+        var user_id = localStorage.getItem('ifa_login_id');
+         window.onload = function () {
+            getclassifylist();
+        }
+ 
+        function getclassifylist() {
+            //mui.alert(request_url)
+            mui.post(request_url + 'api/', { //请求的地址
+                action: 'app_goods_categorys'
+            },
+                function (data) {//服务器返回响应，根据响应结果，分析是否登录成功； ...
+
+                    /*console.log(data);
+
+                    console.log(data.msg)
+//						mui.alert(data.msg);*/
+                    //mui.alert(JSON.stringify(data.datalist))
+                    if (data.msg == 1) {
+
+                        first_classify_list.innerHTML = first_append(data.datalist);
+                        second_classify_list.innerHTML = section_append(data.datalist);
+
+
+                    } else {
+                        /*mui.toast(data.msgbox);*/
+                        return false;
+                    }
+                    first_classify_list.querySelector('.mui-control-item').classList.add('mui-active');
+                    second_classify_list.querySelector('.mui-control-content').classList.add('mui-active');
+                    click_event();
+                }, 'json')
+            //        	return false;
+            mui.post(request_url+'api/',{
+					action: 'app_message_count',
+	            	user_id:user_id
+				},function(data){
+					//console.log(JSON.stringify(data));
+					var count=0;
+					if(data.msg=='1'){
+						count=data.count;
+					}else{
+						count=0;						
+					}
+					
+					document.getElementById("app-message_count").innerHTML=" <span class='mui-icon iconfont icon-icon-- ico_message'></span><span class='mui-tab-label'>消息</span><span class='mui-badge mui-badge-warning'>"+count+"</span>";				 
+				},'json'
+			 );
+        }
+
+        function first_append(data) {
+            var _lenght = data.length;
+            var _html = '';
+            if (_lenght > 0) {
+                for (var i = 0; i < _lenght; i++) {
+                    _html += '<a class="mui-control-item" href="#content' + (i + 1) + '">' + data[i].title + '</a>';
+                }
+            }
+            return _html;
+        }
+        function section_append(data) {
+            var _lenght = data.length;
+            var _html = '';
+            if (_lenght > 0) {
+                for (var i = 0; i < _lenght; i++) {
+                    _html += '<div id="content' + (i + 1) + '" class="mui-control-content">';
+                    _html += '     <ul class="mui-table-view mui-grid-view">';
+                    var _second_lenght = data[i].categorylist.length;
+                    if (_second_lenght > 0) {
+                        for (var j = 0; j < _second_lenght; j++) {
+                            _html += '         <li class="mui-table-view-cell mui-media mui-col-xs-4 shop_cell" iid="'+data[i].categorylist[j].category_id+'">';
+                            _html += '            <a href="javascript:;">';
+                            _html += '                <img class="mui-media-object" src="' + request_img_url + data[i].categorylist[j].img_url + '">';
+                            _html += '                   <div class="mui-media-body">' + data[i].categorylist[j].title + '</div>';
+                            _html += '           </a>';
+                            _html += '        </li>';
+                        }
+                    }
+                    _html += '   </ul>';
+                    _html += '</div>';
+                }
+            }
+            return _html;
+        }
+
+        function click_event() {
+            var cell = document.getElementsByClassName('shop_cell');
+            for (var a = 0; a < cell.length; a++) {
+                (function (index) {
+                    cell[a].addEventListener('tap', function () {
+                        var iid = cell[index].getAttribute('iid');
+                        localStorage.setItem('item_id', iid);
+                        localStorage.setItem('currentPage', 'shop_list'); 
+                        dui.jump('./shop/shop_list.html', 'shop_list', { category_id: iid });
+//                        mui.openWindow({
+//                            url: './shop/shop_list.html',
+//                            id: 'shop_list',
+//                            extras: {
+//                                category_id: iid
+//                            }
+//                        });
+                });
+                })(a);
+            }
+        }
+        //搜索
+ 		document.getElementById("input_search").addEventListener("keypress",function(event) {
+			    if(event.keyCode == "13") {	    	
+			    	var seach_value=document.getElementById("input_search").value; 		    	
+			        document.activeElement.blur();//收起虚拟键盘		       
+			        toSearch(seach_value);//TODO 完成搜索事件
+			        event.preventDefault(); // 阻止默认事件---阻止页面刷新			    
+			    }
+		});
+		function toSearch(seach_value){			
+			dui.jump('./shop/shop_seach.html','app_shop_search_list',{searchkeys:seach_value});
+		}        
+        //消息列表
+ 		document.getElementById('app-message_count').addEventListener("tap",function(){
+ 		    localStorage.setItem('currentPage', 'app-message_count');
+ 			mui.openWindow({
+ 				    url: '/users/message.html', 
+ 			});				
+		})
+    </script>
+</body>
+</html>

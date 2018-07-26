@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html class="ui-page-login">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title></title>
+    <script src="../js/mui.js"></script>
+    <link href="../css/mui.css" rel="stylesheet" />
+    <link href="../css/iconfont.css" rel="stylesheet" />    
+    <link href="../css/style.css" rel="stylesheet" />
+
+</head>
+<body class="bg-fff">
+	<div class="mui-center">
+	    <div class="login-top-bg">
+	    	<img src="../images/login_top_bg_01.jpg" width="100%"/>
+	    </div>
+	    	
+	    <div class="center m-t40">
+	        <form id='login-form' class="login-input-group">
+	            <div class="login-input-row">
+	                <span class="mui-icon iconfont icon-gerenzhongxinyonghu01"></span>
+	                <input id='account' type="text" class="login-input" placeholder="请输入账号">
+	            </div>
+	            <div class="login-input-row">
+	                <span class="mui-icon iconfont icon-renzhengguanli"></span>
+	                <input id='password' type="password" class="login-input-clear login-input" placeholder="请输入密码">
+	            </div>
+	        </form>
+	        <div class="login-content-padded">
+	            <button id='login' class="login-btn">登录</button>
+	            <div class="link-area">
+	                <a id='reg' href="javascript:;">短信验证码登录</a>
+	            </div>
+	        </div>
+	
+	    </div>
+	</div>
+    <script>
+    	mui.init();    	
+        var btnlogin = document.getElementById('login');
+        var _account = document.getElementById('account');
+        var _password = document.getElementById('password');     
+        btnlogin.onclick = function () {
+            if (_account.value == '') {
+                mui.toast('请输入账号');
+                return false;
+            }
+            if (_password.value == '') {
+                mui.toast('密码不能为空');
+                return false;  
+            }
+            var request_url = localStorage.getItem('kfj_request_url');
+            var loginData={
+            //mui.post('http://192.168.0.177:8043/api/', {
+            	action:'oa_user_login',
+                user_name: _account.value,
+                passwords: _password.value
+            };
+            mui.post(request_url + 'api/',loginData, function (data) {        
+                if (data.msg == 1) {
+                    mui.toast('登录成功');
+                    localStorage.setItem('ifa_login_no', data.user_name);
+                    localStorage.setItem('ifa_login_id', data.user_id);
+                    localStorage.setItem('ifa_user_name', data.user_name);
+                    localStorage.setItem('ifa_user_sex', data.user_sex);
+					localStorage.setItem('ifa_user_group_id', data.user_group_id);
+					localStorage.setItem('ifa_user_kyjf', data.user_kyjf);
+					localStorage.setItem('ifa_user_avatar', data.user_avatar);
+
+                    mui.plusReady(function () {
+                        //调用消息模块获取我的信息
+                        var message = plus.webview.getWebviewById('message.html');
+                        mui.fire(message, 'get_message', {});
+                        //调用用户模块获得我的用户信息
+                        var home = plus.webview.getWebviewById('home.html');
+                        mui.fire(home, 'get_user', {});
+                        var index = plus.webview.getLaunchWebview();
+                        //gohome
+                        mui.fire(index, 'gohome', {});
+                        //获得未读信息
+                        mui.fire(index, 'get_message_num', {});
+                        index.show();
+                    });
+                } else if (data.msg == 0) {
+                    mui.toast(data.msgbox);
+                }
+            }, 'json');
+        }
+        //跳转到账户注册页
+        document.getElementById('reg').addEventListener("tap",function(){
+			  mui.openWindow({
+			    url: 'login_mobile.html', 
+			  });
+		});
+    </script>
+</body>
+</html>

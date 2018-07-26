@@ -1,0 +1,24 @@
+{
+	"index.html": {
+		"resources": [
+			"classify.html"
+		],
+		"refer": [
+			"classify.html",
+			"shoppingcar/car.html",
+			"users/index.html",
+			"index/index_top.html",
+			"zhongchou/zhongchou_index.html"
+		]
+	},
+	"users/index.html": {
+		"refer": [
+			"order/order_list.html"
+		]
+	},
+	"order/order_list.html": {
+		"refer": [
+			"order/order_details.html"
+		]
+	}
+}

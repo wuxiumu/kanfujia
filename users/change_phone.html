@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		
+		
+		<link rel="stylesheet" href="../css/iconfont.css"/>
+		<link rel="stylesheet" href="../css/style.css"/>
+	</head>
+
+	<body>
+		<div class="mui-center">
+			<header class="mui-bar mui-bar-nav grzx_nav">
+			    <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			    <h1 class="mui-title">修改手机号</h1>
+			</header>
+			<form class="change_password_group">
+				<div class="change_phone_tips">
+					验证新手机号
+				</div>
+			    <div class="change_phone_row">
+			        <label><img src="../images/phone1.png"/></label>
+			    	<input class="input1" type="text" placeholder="输入11位手机号" id="user_iphone">
+			    	<button class="btn1" type="button" id="get_sms_code_submit" >获取验证码</button>
+			    </div>
+			    <div class="change_phone_row">
+			        <label><img src="../images/pen1.png"/></label>
+			        <input class="" type="password" placeholder="输入收到的验证码" id="get_sms_code">
+			    </div>
+			    <div class="change_password_btn_wrap">
+	            	<button type="button" class="btn"id="submit" >绑 定</button>
+	            </div>
+			</form>	
+		</div>
+		
+		
+		
+		
+		
+		
+		
+		<script src="../js/mui.min.js"></script>
+		<script type="text/javascript">
+			mui.init()
+			mui.ready(function(){
+				//获取短信验证码
+				document.getElementById('get_sms_code_submit').addEventListener("tap",function(){
+					
+					var user_iphone=document.getElementById("user_iphone").value;
+					if(user_iphone==""||user_iphone==null){
+						mui.alert('手机号不能为空', '', function() {
+//							info.innerText = '你刚关闭了警告框';
+						});
+						return;
+					}else{
+						mui.post('http://www.kfj.com/userinfo.php',{
+							action: 'app_shop_info',
+			            	user_iphone:user_iphone
+						},function(data){
+//							console.log(data);
+							var time=60;
+                            var tt=setInterval(function(){
+                                time--;
+                                if(time<=0){
+                                    clearInterval(tt);
+                                    document.getElementById('get_sms_code_submit').innerText="获取验证码";
+                                    return;
+                                }else{
+                                	
+                                	document.getElementById('get_sms_code_submit').innerText=time-1;
+                                }
+                            }, 1000);
+							//提交成功之后的处理逻辑
+	//						if(data.msg=="1"){
+	//							
+	//						}else{
+	//							console.log(data.msgbox);
+	//						}
+						},'json'
+						);
+					}
+				});
+				//向后台提交表单数据
+				document.getElementById("submit").addEventListener("tap",function(){
+						
+						//验证验证码是否正确
+						//判断每个参数时候为空
+						
+						
+				});
+				
+				
+			});
+		</script>
+	</body>
+
+</html>

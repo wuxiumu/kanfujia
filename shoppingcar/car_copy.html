@@ -1,0 +1,380 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		
+		<link rel="stylesheet" type="text/css" href="../css/iconfont.css" />
+    	<link rel="stylesheet" type="text/css" href="../css/style.css" />
+    	
+		<script src="../js/vue.js"></script>
+	</head>
+
+	<body>
+		<div class="mui-center">
+			<header class="mui-bar mui-bar-nav grzx_nav">
+		        <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+		        <h1 class="mui-title">购物车</h1>
+		    </header>
+		    
+		    
+		    <div class="shoppingcart_page" id="buyGoods">
+	
+				<div class="" v-if="todos.length">
+			    	<div class="buy_goods_editor clearfix">
+		                <div class="left">
+		                    <div class="ssl_checkbox">
+		            			<input id="selAll" name="checkbox1" type="checkbox" @click="selAll"><label for="selAll">全选</label>
+		            		</div>
+		                    <a class="delete" href="javascript:void(0);" v-show="isShow" @click="removeSelected">删除</a>
+		                </div>
+		                <div class="right">
+		                    <a class="editor" href="javascript:void(0);" v-text="btnText" @click="showToggle"></a>
+		                </div>
+		            </div>
+			    	
+			    	
+			        <div class="buy_goods_goods">
+			            <div class="single clearfix" v-for="(todo, index) in todos">
+			            	<div class="main">
+			            		<div class="ssl_checkbox">
+			            			<input type="checkbox" name="checkbox" :checked="todo.check" @click="selected(index)" :data-articleid="todo.article_id" :data-goodsid="todo.goods_id">
+			            		</div>
+			            	
+				                <div class="goods_img">
+				                    <img :src="todo.imgurl" alt="">
+				                </div>
+				                <div class="goods_info">
+				                    <p class="name">{{ todo.name }}</p>
+				                    <p class="guige">{{ todo.guige }}</p>
+									<div class="money_num">
+										<p class="money">¥<span>{{ todo.money }}</span></p>
+										
+										<div class="goods_numbox">
+										    <button class="goods_numbox_btn" @click="reduce(index)" :disabled="todo.num == 1">-</button>
+										    <input class="goods_numbox_input" type="number" :value="todo.num" v-model="todo.num" />
+										    <button class="goods_numbox_btn" @click="add(index)" :disabled="todo.num == 10">+</button>
+										</div>
+									</div>		
+				                </div>
+			            	</div>
+			            	
+			            	<div class="delete" v-show="isShow">
+			            		<a class="btn fr" href="javascript:void(0);" @click="removeOne(index)">删除</a>
+			            	</div>
+			            </div>
+			        </div>
+			        
+			        <div class="zw1 m-t10"></div>
+			    	<nav class="mui-bar mui-bar-tab shoppingcart_bottom">
+						<p class="payment">合计：<span class="money">¥{{ totalPrices }}</span></p>
+						<a id="app-detail-buy" class="buy" href="javascript:;" @click="balance">去结算（{{ selectNumber }}）</a>
+					</nav>
+				</div>
+				
+				
+	
+				
+				
+				<div v-else>
+					<div class="gwk_empty">
+						<div class="img1">
+							<img src="../images/gwckk.png"/>
+						</div>
+						<div class="tips">
+							您的购物车没有商品
+						</div>
+					</div>
+					<div class="recommend_goods">
+					<div class="title">
+						推荐宝贝
+					</div>
+					
+					<div class="show_list_main show_list_main_row clearfix">
+						
+						<div class="single clearfix shop_cell">
+	                        <div class="left">
+							    <img src="../images/useless8.jpg" />
+							</div>
+							<div class="right">
+							    <p class="name">第三方士大夫稍等</p>
+							    <!--<p class="introduction">双面悬浮加热 正品三包</p>-->
+				    <div class="bottom">
+				        <div class="money">￥56.00</div>
+				        <a class="btn" href="#"> <span class="span1">立即购买</span>
+				            <span class="mui-icon iconfont icon-gouwuche"></span>
+				        </a>
+				    </div>
+								</div>
+		                    </div>
+		                    <div class="single clearfix shop_cell">
+								<div class="left">
+								    <img src="../images/useless8.jpg" />
+								</div>
+								<div class="right">
+								    <p class="name">第三方士大夫稍等</p>
+								    <!--<p class="introduction">双面悬浮加热 正品三包</p>-->
+								    <div class="bottom">
+								        <div class="money">￥56.00</div>
+								        <a class="btn" href="#"> <span class="span1">立即购买</span>
+								            <span class="mui-icon iconfont icon-gouwuche"></span>
+								        </a>
+								    </div>
+								</div>
+		                    </div>
+		                    
+						</div>
+					</div>
+				</div>
+	
+	
+			</div>
+		</div>
+		
+		
+		
+		<script src="../js/mui.min.js"></script>
+	
+		<script type="text/javascript">
+			
+			var request_url =  localStorage.getItem('kfj_request_url');//请求地址
+			var request_img_url = localStorage.getItem('kfj_img_url');//图片路径
+			var ifa_login_id = localStorage.getItem('ifa_login_id');
+				
+			var user_id = localStorage.getItem('ifa_login_id'); 
+			mui.init();
+			
+			var data_item={
+				
+				btnText:"编辑",
+				isShow:false,
+								
+				//默认商品列表
+				todos:[],
+				
+				
+			  	// 用于保存用户添加到购车的商品数组
+			  	buyLists: []
+			  	
+			  	
+			}
+		
+
+			mui.plusReady(function () {
+	          
+				mui.post(request_url+'api/',{
+					action: 'app_shop_car_list',
+	            	user_id:user_id
+				},function(data){
+					if(data.msg=="1"){
+					
+						var data_array=data.datalist;
+						for(var i=0;i<data_array.length;i++){
+							var data=new Object();
+							data.article_id=data_array[i].article_id,
+							data.goods_id=data_array[i].goods_id,
+							data.imgurl=request_img_url+data_array[i].img_url,
+							data.name=data_array[i].title,
+							data.guige=data_array[i].spec_text,
+							data.money=data_array[i].sell_price,
+							data.num=data_array[i].quantity,
+							data.check=false,
+				        	data_item.todos.push(data);
+						}   
+						//alert(JSON.stringify(data_item)) 
+//						goods.data=data_item;
+
+						shop_car_item_html(data_item);
+						mui('.mui-btn-numbox-plus').on('tap', 'button', function(e) {
+         			 		alert("ddd");
+       					});
+					}else{
+						alert(data.msgbox);
+					}
+						
+				},'json'    
+				);
+				
+				
+			})
+			
+//			var goodss = new Vue({
+//			    el: '#buyGoods',
+//			   	data:data_item,
+//			    methods:{
+//			    	appdetailbuy:function(){//去结算方法
+//			    		get_checked_conteng()
+//			    	},
+//			    	allprice:function(){//计算勾选产品的总价
+//			    		get_checked_conteng()
+//			    	},
+//			    	shop_car_item_delect:function(){
+//			    		alert("删除当前的产品");
+//			    	},
+//			    	
+//			    	
+//			    	showToggle:function(){
+//						this.isShow = !this.isShow
+//						if(this.isShow){
+//							this.btnText = "完成"
+//						}else{
+//							this.btnText = "编辑"
+//						}
+//					}
+//			    	
+//			    }
+//			})
+			
+	
+			function shop_car_item_html(datas){
+				var goods = new Vue({
+				    el: '#buyGoods',
+				    data:datas,
+				    methods:{
+				    	
+				    	showToggle:function(){
+							this.isShow = !this.isShow
+							if(this.isShow){
+								this.btnText = "完成"
+							}else{
+								this.btnText = "编辑"
+							}
+						},
+						removeOne: function (index) {  //移除单个商品
+				            if (confirm("您确定删除该商品？")) {  
+				                this.todos.splice(index, 1);
+				                
+				                //请求后台清除数据
+				                
+				            }
+				        },
+				        
+				        removeSelected: function () {  //移除选中商品
+//				            if (confirm("你确定删除该商品？")) {  
+//				                alert("132");
+//				            }
+				            
+				            //删除全部
+//				            var length = this.todos.length;
+//		                    for(let i =length ;i>=0 ;i--){
+//		                        this.todos.splice(i,1);
+//		                    }
+							
+							//删除选中 
+							for (var i = this.todos.length - 1; i >= 0; i--) {
+							    var index = this.todos[i];
+							    if (index.check) {
+						        	this.todos.splice(i, 1);
+						        }
+						    }
+							
+				        },
+				        
+				        reduce: function (index) {  //减少商品
+				            this.todos[index].num --;
+				        },
+				        add: function (index) { //增加商品
+				            this.todos[index].num ++;
+				        },
+				        
+				        selected: function(index){
+				        	this.todos[index].check = !this.todos[index].check;
+				        	    
+				        },
+				        
+				        
+				        selAll: function () {   //商品全选
+				            let isAll = document.querySelector('#selAll');
+				
+				            if (isAll.checked == true) {
+				                this.todos.forEach(function(todo, index) {
+				                    todo.check = true;
+				                })
+				            } else {
+				                this.todos.forEach(function(todo, index) {
+				                    todo.check = false;
+				                })
+				            }
+				        },
+				        
+				        balance: function() {
+				        	
+				        	this.todos.forEach(function (val, index) {
+				                if (val.check == true){
+				                	
+				                	
+				                	var img_url=val.imgurl;
+				                	val.imgurl=img_url.replace(request_img_url,"");
+				                	data_item.buyLists.push(val);
+//				                    this.buyLists = JSON.parse(JSON.stringify(val));
+				                }
+								
+				            })
+				        	
+					      	alert(JSON.stringify(data_item.buyLists));
+					    }
+
+				    },
+				    computed: {
+				    	
+				        totalPrices: function () {  //计算总价
+				            let totalPrices = 0;
+				 			
+				 			let isAll = document.querySelector('#selAll');
+				 			let lengthChecked = 0;
+				 			let allLength = this.todos.length;
+				 			
+				            this.todos.forEach(function (val, index) {
+				                if (val.check == true){
+				                    totalPrices += parseFloat(val.money * val.num);
+				                    lengthChecked = lengthChecked + 1;
+				                }
+				            })
+				           
+				            
+				            if(allLength == lengthChecked){
+				            	isAll.checked = true;
+				            }else{
+				            	isAll.checked = false;
+				            }
+				            
+				            return totalPrices.toString().replace(/\B(?=(\d{3})+$)/g, ','); //每三位数中间加一个‘，’
+				        },
+				        selectNumber: function(){
+				        	let selectNumber = 0;
+				        	
+				        	for (var i = 0; i < this.todos.length; i++) {
+							    var index = this.todos[i];
+							    if (index.check) {
+						        	selectNumber ++;
+						        }
+						    }
+				        	
+				        	return selectNumber.toString(); 
+				        }
+				        
+				        
+				        
+				    }
+				    
+				    
+				    
+				    
+				})
+			}
+			
+			
+
+			
+			
+	
+
+
+
+		</script>
+	</body>
+
+</html>

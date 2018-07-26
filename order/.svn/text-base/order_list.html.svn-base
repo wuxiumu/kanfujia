@@ -1,0 +1,399 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		
+		<link rel="stylesheet" type="text/css" href="../css/iconfont.css" />
+    	<link rel="stylesheet" type="text/css" href="../css/style.css" />
+    	
+    	<!--<script src="../js/vue.js"></script>-->
+	</head>
+
+	<body id="pullrefresh">
+		<div class="mui-center">
+			<header class="mui-bar mui-bar-nav grzx_nav">
+		        <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+		        <h1 id="app-currentPageTitle" class="mui-title">我的订单</h1>
+		    </header>
+		    <div class="order_list index_list_object" id="orderList">
+		    	<!--<div class="single index_list_object_t" v-for="todo in todos">
+		    		<div class="state">
+		    			<div class="fl">
+		    				订单编号：{{ todo.orderNum }}
+		    			</div>
+		    			<div class="fr">
+		    				{{ todo.state }}
+		    			</div>
+		    		</div>
+		    		<div class="goods_wrap">
+			    		<div class="goods" v-for="item in todo.items">
+			            	<div class="main">
+				                <div class="goods_img">
+				                    <img :src="item.imgurl" alt="">
+				                </div>
+				                <div class="goods_info">
+				                    <p class="name">{{ item.name }}</p>
+				                    <p class="guige">{{ item.guige }}</p>
+									<div class="money_num">
+										<p class="money">¥{{ item.money }}</p>
+										<p class="num">×{{ item.num }}</p>
+									</div>
+				                </div>
+			                </div>
+			            </div>
+			            
+		            </div>
+		            <div class="statistical">
+		            	共一件商品  合计：¥534.00（含运费：0.00）
+		            </div>
+		            <div class="operation clearfix">
+		            	<div class="fr">
+		            		<a class="btn" href="javascript:void(0);">查看订单</a>
+		            		<a class="btn" href="javascript:void(0);">评价</a>
+		            	</div>
+		            </div>
+		            
+		            
+		            
+		    	</div>-->
+		    	
+		    </div>
+	    </div>
+	    
+	    
+	    
+	    
+	    
+	    
+	    <script src="../js/dui.js"></script>
+		<script src="../js/mui.min.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			var request_url =  localStorage.getItem('kfj_request_url');//请求地址
+			var request_img_url = localStorage.getItem('kfj_img_url');//图片路径
+			var ifa_login_id = localStorage.getItem('ifa_login_id');
+			var user_id = localStorage.getItem('ifa_login_id');
+			var currentPage=localStorage.getItem('currentPage');
+			var currentPageTitle='';//当前页
+			var groupValue='';//默认为空或2 查询已支付订单，1查询待支付订单
+			if(currentPage=='user_daifukuan'){
+				currentPageTitle='待付款';
+				groupValue=1;
+			}else if(currentPage=='user_duihuanjl'){
+				currentPageTitle='兑换记录';
+				groupValue=2;
+			}else if(currentPage=='user_tuihuanshouhou'){
+				currentPageTitle='退换货订单';
+				groupValue=3;
+			}
+			document.getElementById("app-currentPageTitle").innerHTML = currentPageTitle;
+			var img_url="";
+			mui.init({
+				pullRefresh: {
+					container: '#pullrefresh',
+					down: {
+						style:'circle',
+						callback: pulldownRefresh
+					},
+					up: {
+						auto:true,
+						contentrefresh: '正在加载...',
+						callback: pullupRefresh
+					}
+				}
+			});
+			
+			//上拉加载请求后台方法
+			var count = 0;
+	        var _page = 1;
+	        var _pagesize = 4;
+	        var _pagecount=0;
+			function pullupRefresh_addData() {
+				var table = document.body.querySelector('.index_list_object');
+				var cells = document.body.querySelectorAll('.index_list_object_t');
+
+                if(_pagecount>0)
+                {
+                	var _totalpage=Math.ceil(_pagecount/_pagesize);
+                	
+                		if(_page==_totalpage)
+                		{
+                			
+                			  mui('#pullrefresh').pullRefresh().disablePullupToRefresh();	
+                			  return;
+                		}
+                }
+                if (cells.length > 0) {
+                    _page = Math.floor(cells.length / _pagesize)+1;
+                }
+
+                var data={
+					action: 'app_users_orders_list',
+					user_id:user_id,
+					group:groupValue,
+	            	page: _page,
+	            	pagesize: _pagesize
+				};
+				
+				post_net(data);			
+			}
+			//下拉刷新请求后台方法
+			function pulldownRefresh_addData() {
+				document.getElementById("orderList").innerHTML = "";
+				var data={
+					action: 'app_users_orders_list',
+					user_id:user_id,
+					group:groupValue,
+	            	page: _page,
+	            	pagesize: _pagesize
+				};
+				console.log(JSON.stringify(data));
+				post_net(data);
+				
+			}
+			//上拉加载			
+			function pullupRefresh() {
+				setTimeout(function() {
+   						
+					mui('#pullrefresh').pullRefresh().endPullupToRefresh(false); //参数为true代表没有更多数据了。					
+					pullupRefresh_addData();					
+				}, 1500);
+			}
+			/**
+			 * 下拉刷新具体业务实现
+			 */
+			function pulldownRefresh() {
+				setTimeout(function() {
+					pulldownRefresh_addData();
+					count = 0;
+	        		_page = 1;
+	        		_pagesize = 4;
+	        		_pagecount=0;
+					mui('#pullrefresh').pullRefresh().endPulldownToRefresh();
+					mui('#pullrefresh').pullRefresh().enablePullupToRefresh();	
+				}, 1500);
+			}
+			//后台请求方法 
+			function post_net(data){
+				mui.post(request_url+'api/',data,function(data){
+						var cells = document.body.querySelectorAll('.index_list_object_t');
+						if(data.msg=="1"){
+							
+							var length_=data.datalist.length;
+							if(length_>0){
+								
+								var content=addData_html(data.datalist);
+//								console.log(JSON.stringify(data.datalist));
+								_pagecount=data.pagecount;
+								if(parseInt(cells.length)<=0){
+									//这是直接插入html
+									document.getElementById("orderList").innerHTML = content;
+								}else{
+									//如果想追加，可以这样
+									//先保存div中原来的html
+									var html = document.getElementById("orderList").innerHTML;
+									//再跟你想追加的代码加到一起插入div中
+									document.getElementById("orderList").innerHTML = html + content;
+								}
+							}else{
+								mui.openWindow({
+							    	url: '../error/404.html',
+							  	});
+							}
+							
+						}else{
+							mui('#pullrefresh').pullRefresh().endPullupToRefresh(true);
+						}
+						click_event()
+					},'json'
+				);
+			}
+			function addData_html(data){
+				
+				var _lenght = data.length;
+	            var _html = '';
+	            
+	            if (_lenght > 0) {
+	            	for (var i = 0; i < _lenght; i++) {
+	                    _html +="<div class='single index_list_object_t'>";
+	                    _html +="<div class='state'>";
+	                    _html +="<div class='fl'>"+(data[i].group_id==1?"商品":"众筹")+"订单编号："+data[i].order_no+"</div>";
+	                    if(data[i].status=="7"){
+	                       _html +="<div class='fr'>退款申请中</div>";
+	                    }else if(data[i].status=="8"){
+	                       _html +="<div class='fr'>已退款</div>";
+	                    }else{
+	                    	
+	                   
+		                    if(data[i].payment_status=="2"){
+		                    	data[i].payment_status="已支付";
+		                    }else {
+		                    	data[i].payment_status="去支付";
+		                    }
+		                    _html +="<div class='fr'>"+data[i].payment_status+"</div>";
+	                     }
+	                   
+	                    _html +="</div>";
+	                    _html +="<div class='goods_wrap'>";
+	                  
+	                    var _lenght_ = data[i].datalist.length;
+	                    
+	                    for (var j = 0; j < _lenght_; j++) {
+	                    	var datalist=data[i].datalist[j];
+	                    	
+		                    _html +="<div class='goods'>";
+		                    _html +="<div class='main'>";
+		                    _html +="<div class='goods_img'>";
+		                    _html +="<img class='app-img' src='"+request_img_url+datalist.img_url+"' alt=''>";
+		                    _html +="</div>";
+		                    _html +="<div class='goods_info'>";
+		                    _html +="<p class='name'>"+datalist.goods_title+"</p>";
+		                    _html +="<p class='guige'>"+datalist.spec_text+"</p>";
+		                    _html +="<div class='money_num'>";
+		                    _html +="<p class='money'>¥"+datalist.real_price+"</p>";
+		                    _html +="<p class='num'>×"+datalist.quantity+"</p>";
+		                    _html +="</div>";
+		                    _html +="</div>";
+		                    _html +="</div>";
+		                    _html +="</div>";
+	                    }
+	                    
+	                    _html +="</div>";
+	                    _html +="<div class='statistical'>共"+_lenght_+"件商品  合计：¥"+data[i].order_amount+"";
+	                    if(data[i].group_id==1){
+	                     _html +="（含运费：¥"+data[i].express_fee+"）"; 
+	                    }
+	                     _html +="</div>";
+	                    _html +="<div class='operation clearfix'>";
+	                    _html +="<div class='fr'>";
+	                    _html +="<a class='btn order_info' href='javascript:void(0);' data-orderNo='"+data[i].order_no+"' >查看订单</a>";
+//	                    _html +="<a class='btn order_comment' href='javascript:void(0);' data-orderNo='"+data[i].order_no+"'>评价</a>";
+
+                        if(currentPage=='user_duihuanjl'){
+                       		_html +="<a class='btn order_info_returned ' href='javascript:void(0);' data-orderNo='"+data[i].order_no+"' >退换货</a>";
+                        }
+	                    
+	                    
+	                    _html +="</div>";
+	                    _html +="</div>";
+	                    _html +="</div>";
+	                }
+	                
+	            }
+	            return _html;
+	            
+			}
+			
+			
+			//查看订单详情
+			function click_event(){
+				var cell = document.getElementsByClassName('order_info');
+				for(var a=0;a<cell.length;a++){
+					(function(index){
+						
+						cell[a].addEventListener('tap',function(){
+							var iid = cell[index].getAttribute('data-orderNo');
+							//alert(iid);return false;//输出订单号
+							dui.jump('./order_details.html','order_details',{info_id:iid});
+						})
+					})(a);
+				}
+				var cell_ = document.getElementsByClassName('order_comment');
+				for(var a=0;a<cell_.length;a++){
+					(function(index){
+						
+						cell_[a].addEventListener('tap',function(){
+							var iid_ = cell_[index].getAttribute('data-orderNo');
+							//alert(iid);return false;//输出订单号
+							dui.jump('/users/evaluate.html','order_details',{info_id:iid_});
+						})
+					})(a);
+				}
+				var cell_s = document.getElementsByClassName('order_info_returned');
+					for(var a=0;a<cell_s.length;a++){
+						(function(index){
+							cell_s[a].addEventListener('tap',function(){
+								var iid_s = cell_s[index].getAttribute('data-orderNo');
+ 								returnShop(iid_s);
+							})
+						})(a);
+				}
+			}
+			//退换货
+			function returnShop(iid_s){
+				localStorage.setItem('currentPage', 'user_tuihuanshouhou');
+				var orders_return_data={
+					action:"app_users_orders_return",
+					user_id:user_id,
+					order_no:iid_s,
+				};
+				mui.post(request_url+'api/',orders_return_data,function(data){
+						if(data.msg=='1'){			
+							mui.openWindow({
+							    url: '../order/order_list.html', 
+							});
+						}else{
+							console.log(JSON.stringify(msgbox)); 							
+						}
+					},'json'
+				); 
+				mui.openWindow({
+				    url: '../order/order_list.html', 
+				});
+			}
+			
+			
+			
+//			var orderList = new Vue({
+//			    el: '#orderList',
+//			    data: {
+//			        todos: [
+//				        {
+//				        	orderNum: '493449034903',
+//				        	state: '未支付',
+//				        	
+//				        	items: [
+//				        		{
+//				        			imgurl: '../images/useless8.jpg',
+//						            name: '7*15CM台历定制',
+//						            guige: '颜色：生命色 大小：2L 颜色：银色 大小：2L 颜色：银色 大小：2L',
+//						            money: '538',
+//						            num: '2'
+//				        		}
+//				        	]
+//				        	
+//				        	
+//				        	
+//				        },
+//				        {
+//				        	orderNum: '126541435645',
+//				        	state: '交易成功',
+//				            items: [
+//				        		{
+//				        			imgurl: '../images/useless10.jpg',
+//						            name: '多添加点文字测试多添加点文字测试',
+//						            guige: '颜色：银色 数量：10只',
+//						            money: '538',
+//						            num: '7'
+//				        		},
+//				        		{
+//				        			imgurl: '../images/useless9.jpg',
+//						            name: '7*15CM台历定制多添加点文字测试多添加点文字测试多添加点文字测试多添加点文字测试',
+//						            guige: '颜色：银色 大小：2L 底座颜色：银红色 大小：22L',
+//						            money: '1204',
+//						            num: '1'
+//				        		}
+//				        		
+//				        	],
+//				        }
+//			        ]
+//			    }
+//			})
+		</script>
+	</body>
+
+</html>
